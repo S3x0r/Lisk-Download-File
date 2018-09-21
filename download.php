@@ -1,5 +1,5 @@
 <?php
-
+error_reporting(0);
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
     chdir('../');
 }
