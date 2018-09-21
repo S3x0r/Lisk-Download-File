@@ -1,4 +1,4 @@
-Lisk Download File
+Download File from Lisk blockchain
 
 Windows:
 to use it on windows just download files from "releases" and run GET_FILE.BAT
