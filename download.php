@@ -1,94 +1,75 @@
 <?php
+
 error_reporting(0);
+
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
     chdir('../');
+    $GLOBALS['OS'] = 'WIN';
+}
+
+/* search for incomplete files */
+if ($result = glob("tempfile_*")) {
+    $file = explode('_', implode('', $result));
+    $GLOBALS['resumed_file'] = $file[0].'_'.$file[1];
+    $GLOBALS['resumed_meta'] = $file[1];
+    $GLOBALS['resumed_tx'] = file_get_contents('temptx');
 }
 
 echo '
-                                                   F                      
-                                                  q@B                     
-                                                 u@B@O                    
-                                                7@BBB@X                   
-                                               7@BBOMB@u                  
-                                               8B@MMOMB@7                 
-                                                OB@MMOMB@i                
-                                             E   BBBMMOBB@,               
-                                            @BX   @BBOMOBB@               
-                                           OB@BY   @BBOMMB@@              
-                                          NB@M@@r  .@@BMMMBB@             
-                                         uB@MMM@Br  :@BMOMM@BM            
-                                        7@@MMOBB@O   r@BMOMM@B0           
-                                       iB@MMOMB@O     j@BMOMO@B2          
-                                      :B@MMOMM@B       S@BMOMM@Bv         
-                                      B@MMOMM@B         G@BMOMM@@i        
-                                     B@MMOMM@B           M@MMOMM@B:       
-                                    B@MMOMM@B,            @@MMOMM@B.      
-                                   8@BMOMM@@i              @@MMOMM@B      
-                                  X@BMOMM@B7               .B@MMOMM@B     
-                                 u@BMOMO@Bu                 :B@MMOMB@O    
-                                7@BMOMM@BP                   7B@MMOMB@q   
-                               i@@BOMMBBO                     jB@MMOMB@2  
-                              ,@@MOMOMBE                       JBMOMOMB@L 
-                             :@BBMMOMM@                         @BMOMMBB@J
-                             rB@BBOMOMB@:                     .MBMOMOMB@B1
-                               8@@BOMOMB@F                   7@BBMMOMB@B, 
-                                L@B@MMMMB@B.                E@BMMMMBB@P   
-                                 .@B@MMOMB@@7             :B@BMOMM@@@r    
-                                   NB@MMOMM@B0vJJuuqZ,   JB@MMOMM@B@      
-                                    7B@MMMMM@B@B@B@B7   MB@MMOMM@@F       
-                                     .@@BMOMMMMBB@Z   :@B@MMOBB@@i        
-                    ......,.,...       F@BBMMOMM@B. .u@B@MBMBB@M          
-                .,,,.........,.,,:..    i@B@MBMMZGrMB@B@B@@@B@u           
-             .,:,.... . ... ......,,:.    M@@OZU1P@@M2F25255X:            
-           .::...        ,,:...  ......    rSBEPPMB5                      
-          ,,...  .iLSkkuv::ir;,,.     .,.     MOMB2                       
-           ... .:1O8j7ii7jvi. ,ELLXkFF25ku   jBBBP
-     ,r7v;:.,,,i5Mu.      :Li :uPv@BBZqkXNv  rOB@7
-  .iuGZkuuJJ7:iLEk    7u:  :jirXGrX@PUv7i:,   .r. 
- .7FMj:     :LLrOi   SBBB.  YJ7jMUri,.,.,.,  .::
- 7JML     7i .v;5i   jZSL   LFi77Fi:,::::::. :i:
-,75E.   :S@Bv r7rr         :57r7Y7::::i::::,:,r 
-,vuP    .8Zki iYrrr.      ,J;vFSLi::::::::.:,:i 
- r7U,     .   vr,:r7i,..,iv:iPSLi:::::::i7J:,i. 
- ,7v7.       i7:vi.:iriiiiiJuLri::::,,i5E@M:.i  
-  ,rvvi.. ..ri,u@EY;i:::i7L7rri::::.:uZMMM7 ::  
-   .:r77riii:ij5r::::iii::.;YSi::,,7Z@8Fvr.,:u. 
-      ,,::::rri.....,..7jLkB@P,:,:2GBZ7.,,,::i. 
-      i::::::FLv;rjMZqG@B@B@O...iXOOFi.,,::i:,  
-      L:.,,.:O@B@B@B@B@B@B@L  .7EZZL:.:::::i::  
-      jJ ..,. :1M@B@B@BOu:   .JO8ki..::::::i::  
-      ,qi         ...    .:rjSOqF:.,::::::::::. 
-       YS:.,,i:i:;i;r7u5S0SJE@81...::::::::::i. 
-       .u8P2XSSSFFqPkSPFFuuJu2q5,.,,::::::::::, 
-       ..S85U2jU21U2UujuUuJ1uU5Sr..:::::::::,:. 
-       ...UuuJJLYv7;vvYLu2U1FU251:....,,,::::r7 
-       ...vUJYYuLv7LvJvLYSLuuuJ1jv::ir;7vYLUUXB,
-       .:.ruJLLJJLjLuujJF2JLjuuuSuqUXkkjqNkF5SF 
-       .7J7uvYYju1uF55U5UjujLjYuSuuNFPSY1qPkFP. 
-        :uuvLLJLuu2UuLjjUuuYU1U7LvYuS11ukXXNGi  
-      .GkFrLjUYJLjYuvvuUYuuuUFu2Juu1215NNGON,   
-       E@BF7JUFSXSF21JFFFFS151kXPkF5q0MM@Ov     
-       2BM@MFUF0GONX55u150OOZqkPkNqMB@85:       
-       J@OOB@B@: :8O0PN0BqjLX@OGOO@Mi           
-        E@@@BG    :BB@B@M    @BO8MO             
-         :S@@7   JEB@B@BJ    .@B@Bv             
-                0@@@B@B@@vii:EB@B@BZ';
+ B@B@B@B@@@B@B@B@B@B@B@B@@@B@B@B@B@B@@@@@@@B@B@B@B@B@@@B@B
+ @B@BGB@B@B@B@B@@@B@@@B@B@B@@@B@B@B@B@B@@@B@B@B@@@B@@@@@B@
+ B@B@  :@Bi:@B@B@B@@@B@BGS522s22SXMB@B@B@B@B@B@B@B@@@B@B@B
+ @: r   :   H@B@B@B@9sr;rrs5ssss2H2229M@@@B@B@B@B@B@B@B@@@
+ B         S@B@@@B,      ,::rsGB5:,  ,:i9@@B@B@B@B@B@, B@B
+ @B@M,     @B@X@X   rMB@Mr:,:MS          iB@B@B2  B@   @@@
+ B@@@B@    :@BGB  sB@B@;sBBrii  rB@B@B2:, :B@B@i         s
+ @@@B@@@ii:sB@9X ,@@B,    BSi  9Bi ,B@B@r,  M@B@B        S
+ B@@@B@B@92,@9,X  @B@,   ,@2i  @     B@GX:,  B@@,     X@@B
+ @B@@@B@BMs:r@r;i i@B@G2M@S::, @s  ,X@G92,   ,B@    B@B@B@
+ @@B@B@M@B2r:sssr: i29@B5i,  r :@B@B@BXr,,   ,@;::rM@B@B@B
+ @B@B@B@B@Gs:rHSSsi:,,,,     ,:,,rssri,,,iir,9s  rB@B@B@B@
+ B@B@B@B@B@si:XSSSsrsi::,,,::,:::,,,, ,,:;rsr,  :B@B@B@B@B
+ @B@B@B@@@BG: :XXG: :rssssS3x0rS2ssr::irrrrrr  ,B@B@B@B@B@
+ B@B@B@B@B@Bs  :SGM                 :rrrsr,    G@B@@@B@B@@
+ @B@@@B@B@B@Xs  :SM@               ,ssss,     r@B@B@B@B@B@
+ B@B@B@@@B@B2Hs  :SM@@sr:,      :sMG22s,   ,r:@@@B@B@B@B@B
+ @B@B@B@B@B@2s9s,  ,::r222sHSX222srri:   ,rrirB@B@B@B@B@B@
+ B@B@B@B@B@B2s292                       :rri:2@B@B@B@B@B@B
+ @B@B@B@@@B@Ss29s,  ,, ,         ,     rrrii,M@@B@@@B@B@B@
+ B@B@B@B@B@@MsXGs,,,,, ,,:i:,,,       ,ssrriiB@B@B@@@B@B@B
+ @B@B@B@@@B@r:r5r ,,,, ,,,,, ,,       ,rii:,,@B@B@@@B@B@B@
+ B@B@B@B@B@@:   ,,:,,,,          ,,          G@@@B@B@B@B@B
+ @B@B@B@B@B@B   ,,,,,,,,   ,                X@B@B@B@B@B@@@
+ B@B@B@B@B@B@B        , , ,,               9@B@B@B@B@B@B@B
+ @B@B@@@B@B@B@Br                         i@@B@B@B@B@B@B@B@
+ B@B@B@B@B@@@B@B@Br:                  rM@B@B@B@B@B@B@B@B@@
+ @B@B@B@B@@@B@B@@@B@B@2           :GB@BBG9XXSSS9X9999G9GGM
+ B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
+ @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.PHP_EOL.PHP_EOL;
 
-echo PHP_EOL.PHP_EOL.' Download File from Lisk blockchain'.PHP_EOL.PHP_EOL;
-echo PHP_EOL.' Transaction ID: ';
+echo ' Lisk Download 0.3 (download file from lisk blockchain)'.PHP_EOL;
+echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.PHP_EOL;
+echo ' ------------------------------------------------------'.PHP_EOL;
 
-while ($tx = fgets(STDIN)) {
-    break;
-}
+if (!isset($GLOBALS['resumed_file'])) {
+    echo PHP_EOL.' Transaction ID: ';
 
-$tx = trim($tx);
+    while ($tx = fgets(STDIN)) {
+           break;
+    }
 
-if (!empty($tx)) {
-    GetMetaData($tx);
+    $tx = trim($tx);
+
+    if (!empty($tx)) {
+        $GLOBALS['meta_tx'] = $tx;
+        GetMetaData($tx);
+    } else {
+             echo ' You need to write transaction tx! Exiting.';
+             sleep(3);
+             die();
+    }
 } else {
-         echo ' You need to write transaction tx! Exiting.';
-         sleep(3);
-         die();
+         GetMetaData($GLOBALS['resumed_meta']);
 }
 //---------------------------------------------------------------------------------------------------
 function GetMetaData($txId)
@@ -98,7 +79,7 @@ function GetMetaData($txId)
     /* get tx data */
     $handle = file_get_contents('https://testnet.lisk.io/api/transactions?id='.$txId.'&limit=1&offset=0');
     $rawData = json_decode($handle, true);
-  
+
     $data = $rawData['data']['0']['asset']['data'];
 
     /* decode it */
@@ -107,28 +88,36 @@ function GetMetaData($txId)
 
     $rawMeta = explode("'", $decodedData);
 
-    echo PHP_EOL.' Checking Transaction: '.$txId.PHP_EOL;
+    if (!isset($GLOBALS['resumed_meta'])) {
+        echo PHP_EOL.' Checking Transaction: '.$txId.PHP_EOL.PHP_EOL;
+    }
 
     /* check if valid header */
     if ($rawMeta[0] == 'M') {
         $tx_filename  = $rawMeta[1];
-        $tx_size      = $rawMeta[2];
+        $GLOBALS['tx_size'] = $rawMeta[2];
         $tx_lastBlock = $rawMeta[3];
 
         echo ' Filename : '.$tx_filename.PHP_EOL;
-        echo ' Size     : '.$tx_size.'b'.PHP_EOL;
-        echo ' File ID  : '.$tx_lastBlock.PHP_EOL;
+        echo ' Size     : '.formatBytes($GLOBALS['tx_size']).PHP_EOL;
+        echo ' File TX  : '.$tx_lastBlock.PHP_EOL;
         
         sleep(2);
-
-        echo PHP_EOL.' Restoring File from Lisk blockchain...'.PHP_EOL.PHP_EOL;
-
+        
         /* restore file */
-        echo ' Data:'.PHP_EOL;
-        GetData($rawMeta[3]);
+        if (!isset($GLOBALS['resumed_meta'])) {
+            echo PHP_EOL.' Downloading file from Lisk blockchain:'.PHP_EOL;
+            GetData($rawMeta[3]);
+        } else {
+                 echo PHP_EOL.' Resuming downloading file from Lisk blockchain:'.PHP_EOL;
+                 ResumeData($GLOBALS['resumed_tx']);
+        }
     } else {
-             echo PHP_EOL.' Cannot find file header, aborting.';
-             sleep(40);
+             echo ' No file in that transaction, Exiting.';
+
+        if (!empty($GLOBALS['OS'])) {
+            sleep(10);
+        }
     }
 }
 //---------------------------------------------------------------------------------------------------
@@ -144,14 +133,19 @@ function GetData($tx)
     $data_part = $dataParts[0];
     $next_tx = $dataParts[1];
 
-    /* show data flow */
-    echo $data_part;
-   
+    /* show data left */
+    if (is_file('tempfile_'.$GLOBALS['meta_tx'])) {
+        clearstatcache();
+        $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
+        echo ' Remaining: '.$left.PHP_EOL;
+    }
+    
     if (!empty($next_tx)) {
-        file_put_contents('temp_file', $data_part."'", FILE_APPEND);
+        file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $data_part."'", FILE_APPEND);
+        file_put_contents('temptx', $next_tx);
     } else {
-             file_put_contents('temp_file', $data_part."'", FILE_APPEND);
-             $exp = explode("'", file_get_contents('temp_file'));
+             file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $data_part."'", FILE_APPEND);
+             $exp = explode("'", file_get_contents('tempfile_'.$GLOBALS['meta_tx']));
 
              /* reverse */
              $reverse = array_reverse($exp);
@@ -167,18 +161,96 @@ function GetData($tx)
              $decoded = $Func->decode($imp);
 
              /* save to file */
-             file_put_contents('temp_file', $decoded);
+             file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $decoded);
+
+             /* unzip */
+             echo 'unziping';
+             $zip = new ZipArchive;
+             $zip->open('tempfile_'.$GLOBALS['meta_tx']);
+             $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
+             $zip->close();
 
              /* rename to file from meta data */
-             rename('temp_file', $GLOBALS['tx_filename']);
-           
+             unlink('tempfile_'.$GLOBALS['meta_tx']);
+
+             /* delete temp_tx */
+             unlink('temptx');
+
              echo PHP_EOL.PHP_EOL.' Done, Data saved to file: '.$GLOBALS['tx_filename'].PHP_EOL;
              die();
     }
     GetData($next_tx);
 }
+//---------------------------------------------------------------------------------------------------
+function ResumeData($tx)
+{
+    $handle = file_get_contents('https://testnet.lisk.io/api/transactions?id='.$tx.'&limit=1&offset=0');
+    $rawData = json_decode($handle, true);
 
+    $data = $rawData['data']['0']['asset']['data'];
+  
+    $dataParts = explode("'", $data);
+    
+    $data_part = $dataParts[0];
+    $next_tx = $dataParts[1];
+    
+    if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
+        clearstatcache();
+        $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
+        echo ' Remaining: '.$left.PHP_EOL;
+    }
 
+    if (!empty($next_tx)) {
+        file_put_contents('tempfile_'.$GLOBALS['resumed_meta'], $data_part."'", FILE_APPEND);
+        file_put_contents('temptx', $next_tx);
+    } else {
+             file_put_contents($GLOBALS['resumed_file'], $data_part."'", FILE_APPEND);
+             $exp = explode("'", file_get_contents($GLOBALS['resumed_file']));
+
+             /* reverse */
+             $reverse = array_reverse($exp);
+           
+             /* remove empty */
+             $exp2 = array_filter($reverse);
+           
+             /* convert to string */
+             $imp = implode('', $exp2);
+
+             /* decode */
+             $Func = new Base91();
+             $decoded = $Func->decode($imp);
+
+             /* save to file */
+             file_put_contents($GLOBALS['resumed_file'], $decoded);
+  
+             /* unzip */
+             echo 'unziping';
+             $zip = new ZipArchive;
+             $zip->open($GLOBALS['resumed_file']);
+             $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
+             $zip->close();
+
+             /* delete temp data */
+             unlink($GLOBALS['resumed_file']);
+             unlink('temptx');
+            
+             echo PHP_EOL.PHP_EOL.' Done, Data saved to file: '.$GLOBALS['tx_filename'].PHP_EOL;
+             die();
+    }
+    ResumeData($next_tx);
+}
+//---------------------------------------------------------------------------------------------------
+function formatBytes($size, $precision = 0)
+{
+    $unit = ['Byte(s)','KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+
+    for ($i = 0; $size >= 1024 && $i < count($unit)-1; $i++) {
+         $size /= 1024;
+    }
+
+    return round($size, $precision).' '.$unit[$i];
+}
+//---------------------------------------------------------------------------------------------------
 class Base91
 {
     private static $chars = array(

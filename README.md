@@ -1,7 +1,7 @@
 <h2>Download File from Lisk blockchain</h2>
 <br>
 Windows:<br>
-to use it on windows just download files from "releases" and run GET_FILE.BAT<br>
+to use it on windows just download files from "releases" and run DOWNLOAD.BAT<br>
 <br>
 Linux:<br>
 download:<br>
