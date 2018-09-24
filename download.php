@@ -2,6 +2,8 @@
 
 error_reporting(0);
 
+define('N', PHP_EOL);
+
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
     chdir('../');
     $GLOBALS['OS'] = 'WIN';
@@ -45,27 +47,23 @@ echo '
  B@B@B@B@B@@@B@B@Br:                  rM@B@B@B@B@B@B@B@B@@
  @B@B@B@B@@@B@B@@@B@B@2           :GB@BBG9XXSSS9X9999G9GGM
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
- @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.PHP_EOL.PHP_EOL;
+ @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-echo ' Lisk Download 0.3 (download file from lisk blockchain)'.PHP_EOL;
-echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.PHP_EOL;
-echo ' ------------------------------------------------------'.PHP_EOL;
+echo ' Lisk Download 0.4 (download file from lisk blockchain)'.N;
+echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.N;
+echo ' ------------------------------------------------------'.N;
 
 if (!isset($GLOBALS['resumed_file'])) {
-    echo PHP_EOL.' Transaction ID: ';
+    echo N.' Transaction ID: ';
 
-    while ($tx = fgets(STDIN)) {
-           break;
-    }
+    $answer = Interact();
 
-    $tx = trim($tx);
-
-    if (!empty($tx)) {
-        $GLOBALS['meta_tx'] = $tx;
-        GetMetaData($tx);
+    if (!empty($answer)) {
+        $GLOBALS['meta_tx'] = $answer;
+        GetMetaData($answer);
     } else {
-             echo ' You need to write transaction tx! Exiting.';
-             sleep(3);
+             echo ' You need to write transaction tx! Exiting.'.N;
+             WinSleep(3);
              die();
     }
 } else {
@@ -89,7 +87,7 @@ function GetMetaData($txId)
     $rawMeta = explode("'", $decodedData);
 
     if (!isset($GLOBALS['resumed_meta'])) {
-        echo PHP_EOL.' Checking Transaction: '.$txId.PHP_EOL.PHP_EOL;
+        echo N.' Checking Transaction: '.$txId.N.N;
     }
 
     /* check if valid header */
@@ -98,27 +96,59 @@ function GetMetaData($txId)
         $GLOBALS['tx_size'] = $rawMeta[2];
         $tx_lastBlock = $rawMeta[3];
 
-        echo ' Filename : '.$tx_filename.PHP_EOL;
-        echo ' Size     : '.formatBytes($GLOBALS['tx_size']).PHP_EOL;
-        echo ' File TX  : '.$tx_lastBlock.PHP_EOL;
-        
-        sleep(2);
+        echo ' Filename : '.$tx_filename.N;
+        echo ' Size     : '.formatBytes($GLOBALS['tx_size']).N;
+        echo ' File TX  : '.$tx_lastBlock.N;
         
         /* restore file */
         if (!isset($GLOBALS['resumed_meta'])) {
-            echo PHP_EOL.' Downloading file from Lisk blockchain:'.PHP_EOL;
-            GetData($rawMeta[3]);
+            echo N.' Download file? (yes/no): ';
+            $answer = Interact();
+
+            if ($answer == 'yes' xor $answer == 'y') {
+                echo N.' Downloading file from Lisk blockchain:'.N;
+                GetData($rawMeta[3]);
+            } else {
+                     echo ' Exiting...'.N;
+                     WinSleep(3);
+            }
         } else {
-                 echo PHP_EOL.' Resuming downloading file from Lisk blockchain:'.PHP_EOL;
-                 ResumeData($GLOBALS['resumed_tx']);
+                 echo N.' Do you want to resume downloading previous file? (yes/no): ';
+
+                 $answer = Interact();
+                
+            if ($answer == 'yes' xor $answer == 'y') {
+                echo N;
+                ResumeData($GLOBALS['resumed_tx']);
+            } else {
+                     unlink('temptx');
+                     unlink($GLOBALS['resumed_file']);
+                          
+                     echo ' Exiting. '.N;
+                     WinSleep(3);
+            }
         }
     } else {
-             echo ' No file in that transaction, Exiting.';
-
-        if (!empty($GLOBALS['OS'])) {
-            sleep(10);
-        }
+             echo ' No file in that transaction, Exiting.'.N;
+             WinSleep(10);
     }
+}
+//---------------------------------------------------------------------------------------------------
+function WinSleep($time)
+{
+    if (isset($GLOBALS['OS'])) {
+        sleep($time);
+    }
+}
+//---------------------------------------------------------------------------------------------------
+function Interact()
+{
+    while ($ask = fgets(STDIN)) {
+           break;
+    }
+    $ask = trim($ask);
+
+    return $ask;
 }
 //---------------------------------------------------------------------------------------------------
 function GetData($tx)
@@ -131,13 +161,16 @@ function GetData($tx)
     $dataParts = explode("'", $data);
     
     $data_part = $dataParts[0];
-    $next_tx = $dataParts[1];
+    
+    if (isset($dataParts[1])) {
+        $next_tx = $dataParts[1];
+    }
 
     /* show data left */
     if (is_file('tempfile_'.$GLOBALS['meta_tx'])) {
         clearstatcache();
         $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
-        echo ' Remaining: '.$left.PHP_EOL;
+        echo ' Remaining: '.$left.N;
     }
     
     if (!empty($next_tx)) {
@@ -164,7 +197,7 @@ function GetData($tx)
              file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $decoded);
 
              /* unzip */
-             echo 'unziping';
+             echo N.' Decompressing file...';
              $zip = new ZipArchive;
              $zip->open('tempfile_'.$GLOBALS['meta_tx']);
              $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
@@ -176,7 +209,8 @@ function GetData($tx)
              /* delete temp_tx */
              unlink('temptx');
 
-             echo PHP_EOL.PHP_EOL.' Done, Data saved to file: '.$GLOBALS['tx_filename'].PHP_EOL;
+             echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
+             WinSleep(7);
              die();
     }
     GetData($next_tx);
@@ -192,12 +226,15 @@ function ResumeData($tx)
     $dataParts = explode("'", $data);
     
     $data_part = $dataParts[0];
-    $next_tx = $dataParts[1];
+
+    if (isset($dataParts[1])) {
+        $next_tx = $dataParts[1];
+    }
     
     if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
         clearstatcache();
         $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
-        echo ' Remaining: '.$left.PHP_EOL;
+        echo ' Remaining: '.$left.N;
     }
 
     if (!empty($next_tx)) {
@@ -224,7 +261,7 @@ function ResumeData($tx)
              file_put_contents($GLOBALS['resumed_file'], $decoded);
   
              /* unzip */
-             echo 'unziping';
+             echo N.' Decompressing file...';
              $zip = new ZipArchive;
              $zip->open($GLOBALS['resumed_file']);
              $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
@@ -234,7 +271,8 @@ function ResumeData($tx)
              unlink($GLOBALS['resumed_file']);
              unlink('temptx');
             
-             echo PHP_EOL.PHP_EOL.' Done, Data saved to file: '.$GLOBALS['tx_filename'].PHP_EOL;
+             echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
+             WinSleep(7);
              die();
     }
     ResumeData($next_tx);

@@ -11,6 +11,5 @@ then:<br>
 sudo php download.php<br>
 <br>
 if php is not present on Linux:<br>
-sudo apt-get install php<br>
-sudo apt-get install php-openssl<br>
+sudo apt-get install php php-openssl php-zip<br>
 <br><br>
