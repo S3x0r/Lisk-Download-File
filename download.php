@@ -2,6 +2,8 @@
 
 error_reporting(0);
 
+ini_set('precision', 25);
+
 define('N', PHP_EOL);
 
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -49,7 +51,7 @@ echo '
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
  @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-echo ' Lisk Download 0.4 (download file from lisk blockchain)'.N;
+echo ' Lisk Download 0.5 (download file from lisk blockchain)'.N;
 echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.N;
 echo ' ------------------------------------------------------'.N;
 
@@ -94,7 +96,7 @@ function GetMetaData($txId)
     if ($rawMeta[0] == 'M') {
         $tx_filename  = $rawMeta[1];
         $GLOBALS['tx_size'] = $rawMeta[2];
-        $tx_lastBlock = $rawMeta[3];
+        $tx_lastBlock = toDec($rawMeta[3]);
 
         echo ' Filename : '.$tx_filename.N;
         echo ' Size     : '.formatBytes($GLOBALS['tx_size']).N;
@@ -107,7 +109,7 @@ function GetMetaData($txId)
 
             if ($answer == 'yes' xor $answer == 'y') {
                 echo N.' Downloading file from Lisk blockchain:'.N;
-                GetData($rawMeta[3]);
+                GetData(toDec($rawMeta[3]));
             } else {
                      echo ' Exiting...'.N;
                      WinSleep(3);
@@ -163,7 +165,7 @@ function GetData($tx)
     $data_part = $dataParts[0];
     
     if (isset($dataParts[1])) {
-        $next_tx = $dataParts[1];
+        $next_tx = toDec($dataParts[1]);
     }
 
     /* show data left */
@@ -228,7 +230,7 @@ function ResumeData($tx)
     $data_part = $dataParts[0];
 
     if (isset($dataParts[1])) {
-        $next_tx = $dataParts[1];
+        $next_tx = toDec($dataParts[1]);
     }
     
     if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
@@ -287,6 +289,17 @@ function formatBytes($size, $precision = 0)
     }
 
     return round($size, $precision).' '.$unit[$i];
+}
+//---------------------------------------------------------------------------------------------------
+function toDec($hex)
+{
+    if (strlen($hex) == 1) {
+        return hexdec($hex);
+    } else {
+             $remain = substr($hex, 0, -1);
+             $last = substr($hex, -1);
+             return bcadd(bcmul(16, toDec($remain)), hexdec($last));
+    }
 }
 //---------------------------------------------------------------------------------------------------
 class Base91
