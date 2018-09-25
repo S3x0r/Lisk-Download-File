@@ -10,6 +10,6 @@ wget https://raw.githubusercontent.com/S3x0r/Lisk-Download-File/master/download.
 then:<br>
 sudo php download.php<br>
 <br>
-if php is not present on Linux:<br>
+if php or extensions are not present on Linux:<br>
 sudo apt-get install php php-openssl php-zip<br>
 <br><br>
