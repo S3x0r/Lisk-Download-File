@@ -51,25 +51,28 @@ echo '
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
  @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-echo ' Lisk Download 0.5 (download file from lisk blockchain)'.N;
+echo ' Lisk Download 0.6 (download file from lisk blockchain)'.N;
 echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.N;
 echo ' ------------------------------------------------------'.N;
 
-if (!isset($GLOBALS['resumed_file'])) {
-    echo N.' Transaction ID: ';
-
-    $answer = Interact();
-
-    if (!empty($answer)) {
-        $GLOBALS['meta_tx'] = $answer;
-        GetMetaData($answer);
-    } else {
-             echo ' You need to write transaction tx! Exiting.'.N;
-             WinSleep(3);
-             die();
-    }
+if (isset($_SERVER['argv'][1])) {
+    GetMetaData(trim($_SERVER['argv'][1]));
 } else {
+    if (!isset($GLOBALS['resumed_file'])) {
+        echo N.' Transaction ID: ';
+        $answer = Interact();
+
+        if (!empty($answer)) {
+            $GLOBALS['meta_tx'] = $answer;
+            GetMetaData($answer);
+        } else {
+                 echo ' You need to write transaction tx! Exiting.'.N;
+                 WinSleep(3);
+                 die();
+        }
+    } else {
          GetMetaData($GLOBALS['resumed_meta']);
+    }
 }
 //---------------------------------------------------------------------------------------------------
 function GetMetaData($txId)
@@ -80,13 +83,7 @@ function GetMetaData($txId)
     $handle = file_get_contents('https://testnet.lisk.io/api/transactions?id='.$txId.'&limit=1&offset=0');
     $rawData = json_decode($handle, true);
 
-    $data = $rawData['data']['0']['asset']['data'];
-
-    /* decode it */
-    $base91 = new Base91();
-    $decodedData = $base91->decode($data);
-
-    $rawMeta = explode("'", $decodedData);
+    $rawMeta = explode("'", Base91::decode($rawData['data']['0']['asset']['data']));
 
     if (!isset($GLOBALS['resumed_meta'])) {
         echo N.' Checking Transaction: '.$txId.N.N;
@@ -121,7 +118,7 @@ function GetMetaData($txId)
                 
             if ($answer == 'yes' xor $answer == 'y') {
                 echo N;
-                ResumeData($GLOBALS['resumed_tx']);
+                GetData($GLOBALS['resumed_tx']);
             } else {
                      unlink('temptx');
                      unlink($GLOBALS['resumed_file']);
@@ -158,126 +155,85 @@ function GetData($tx)
     $handle = file_get_contents('https://testnet.lisk.io/api/transactions?id='.$tx.'&limit=1&offset=0');
     $rawData = json_decode($handle, true);
 
-    $data = $rawData['data']['0']['asset']['data'];
-  
-    $dataParts = explode("'", $data);
-    
-    $data_part = $dataParts[0];
+    $dataParts = explode("'", $rawData['data']['0']['asset']['data']);
     
     if (isset($dataParts[1])) {
         $next_tx = toDec($dataParts[1]);
     }
 
-    /* show data left */
-    if (is_file('tempfile_'.$GLOBALS['meta_tx'])) {
-        clearstatcache();
-        $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
-        echo ' Remaining: '.$left.N;
+    /* show how much data left */
+    if (isset($GLOBALS['resumed_tx'])) {
+        if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
+            clearstatcache();
+            $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
+            echo ' Remaining: '.$left.N;
+        }
+    } else {
+        if (is_file('tempfile_'.$GLOBALS['meta_tx'])) {
+            clearstatcache();
+            $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
+            echo ' Remaining: '.$left.N;
+        }
     }
     
     if (!empty($next_tx)) {
-        file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $data_part."'", FILE_APPEND);
+        if (isset($GLOBALS['resumed_tx'])) {
+            file_put_contents('tempfile_'.$GLOBALS['resumed_meta'], $dataParts[0]."'", FILE_APPEND);
+        } else {
+                 file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $dataParts[0]."'", FILE_APPEND);
+        }
         file_put_contents('temptx', $next_tx);
     } else {
-             file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $data_part."'", FILE_APPEND);
-             $exp = explode("'", file_get_contents('tempfile_'.$GLOBALS['meta_tx']));
+        if (isset($GLOBALS['resumed_tx'])) {
+            file_put_contents($GLOBALS['resumed_file'], $dataParts[0]."'", FILE_APPEND);
+            $exp = explode("'", file_get_contents($GLOBALS['resumed_file']));
+        } else {
+                 file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $dataParts[0]."'", FILE_APPEND);
+                 $exp = explode("'", file_get_contents('tempfile_'.$GLOBALS['meta_tx']));
+        }
 
-             /* reverse */
-             $reverse = array_reverse($exp);
-           
-             /* remove empty */
-             $exp2 = array_filter($reverse);
-           
-             /* convert to string */
-             $imp = implode('', $exp2);
+        /* reverse */
+        $reverse = array_reverse($exp);
+         
+        /* remove empty */
+        $exp2 = array_filter($reverse);
+         
+        /* convert to string */
+        $imp = implode('', $exp2);
 
-             /* decode */
-             $Func = new Base91();
-             $decoded = $Func->decode($imp);
+        /* save to file */
+        if (isset($GLOBALS['resumed_tx'])) {
+            file_put_contents($GLOBALS['resumed_file'], Base91::decode($imp));
+        } else {
+                 file_put_contents('tempfile_'.$GLOBALS['meta_tx'], Base91::decode($imp));
+        }
 
-             /* save to file */
-             file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $decoded);
+        /* unzip */
+        echo N.' Decompressing file...';
+        $zip = new ZipArchive();
+        if (isset($GLOBALS['resumed_tx'])) {
+            $zip->open($GLOBALS['resumed_file']);
+        } else {
+                 $zip->open('tempfile_'.$GLOBALS['meta_tx']);
+        }
 
-             /* unzip */
-             echo N.' Decompressing file...';
-             $zip = new ZipArchive;
-             $zip->open('tempfile_'.$GLOBALS['meta_tx']);
-             $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
-             $zip->close();
+        $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
+        $zip->close();
 
-             /* rename to file from meta data */
-             unlink('tempfile_'.$GLOBALS['meta_tx']);
+        /* delete temp_tx */
+        if (isset($GLOBALS['resumed_tx'])) {
+            unlink($GLOBALS['resumed_file']);
+        } else {
+                 unlink('tempfile_'.$GLOBALS['meta_tx']);
+        }
 
-             /* delete temp_tx */
-             unlink('temptx');
+        unlink('temptx');
 
-             echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
-             WinSleep(7);
-             die();
+        echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
+        WinSleep(7);
+        die();
     }
     GetData($next_tx);
-}
-//---------------------------------------------------------------------------------------------------
-function ResumeData($tx)
-{
-    $handle = file_get_contents('https://testnet.lisk.io/api/transactions?id='.$tx.'&limit=1&offset=0');
-    $rawData = json_decode($handle, true);
-
-    $data = $rawData['data']['0']['asset']['data'];
-  
-    $dataParts = explode("'", $data);
-    
-    $data_part = $dataParts[0];
-
-    if (isset($dataParts[1])) {
-        $next_tx = toDec($dataParts[1]);
-    }
-    
-    if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
-        clearstatcache();
-        $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
-        echo ' Remaining: '.$left.N;
-    }
-
-    if (!empty($next_tx)) {
-        file_put_contents('tempfile_'.$GLOBALS['resumed_meta'], $data_part."'", FILE_APPEND);
-        file_put_contents('temptx', $next_tx);
-    } else {
-             file_put_contents($GLOBALS['resumed_file'], $data_part."'", FILE_APPEND);
-             $exp = explode("'", file_get_contents($GLOBALS['resumed_file']));
-
-             /* reverse */
-             $reverse = array_reverse($exp);
-           
-             /* remove empty */
-             $exp2 = array_filter($reverse);
-           
-             /* convert to string */
-             $imp = implode('', $exp2);
-
-             /* decode */
-             $Func = new Base91();
-             $decoded = $Func->decode($imp);
-
-             /* save to file */
-             file_put_contents($GLOBALS['resumed_file'], $decoded);
-  
-             /* unzip */
-             echo N.' Decompressing file...';
-             $zip = new ZipArchive;
-             $zip->open($GLOBALS['resumed_file']);
-             $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
-             $zip->close();
-
-             /* delete temp data */
-             unlink($GLOBALS['resumed_file']);
-             unlink('temptx');
-            
-             echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
-             WinSleep(7);
-             die();
-    }
-    ResumeData($next_tx);
 }
 //---------------------------------------------------------------------------------------------------
 function formatBytes($size, $precision = 0)
