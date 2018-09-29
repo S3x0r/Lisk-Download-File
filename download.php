@@ -11,10 +11,6 @@ if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
     $GLOBALS['OS'] = 'WIN';
 }
 
-if ($_SERVER['argv'][2] == 'gui') {
-    chdir('/');
-}
-
 /* search for incomplete files */
 if ($result = glob("tempfile_*")) {
     $file = explode('_', implode('', $result));
@@ -23,7 +19,6 @@ if ($result = glob("tempfile_*")) {
     $GLOBALS['resumed_tx'] = file_get_contents('temptx');
 }
 
-if ($_SERVER['argv'][2] != 'gui') {
     echo '
  B@B@B@B@@@B@B@B@B@B@B@B@@@B@B@B@B@B@@@@@@@B@B@B@B@B@@@B@B
  @B@BGB@B@B@B@B@@@B@@@B@B@B@@@B@B@B@B@B@@@B@B@B@@@B@@@@@B@
@@ -59,7 +54,6 @@ if ($_SERVER['argv'][2] != 'gui') {
     echo ' Lisk Download 0.7 (download file from lisk blockchain)'.N;
     echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.N;
     echo ' ------------------------------------------------------'.N;
-}
 
 if (isset($_SERVER['argv'][1])) {
     GetMetaData(trim($_SERVER['argv'][1]));
@@ -92,9 +86,7 @@ function GetMetaData($txId)
     $rawMeta = explode("'", Base91::decode($rawData['data']['0']['asset']['data']));
 
     if (!isset($GLOBALS['resumed_meta'])) {
-        if ($_SERVER['argv'][2] != 'gui') {
-            echo N.' Checking Transaction: '.$txId.N.N;
-        }
+        echo N.' Checking Transaction: '.$txId.N.N;
     }
 
     /* check if valid header */
@@ -103,16 +95,13 @@ function GetMetaData($txId)
         $GLOBALS['tx_size'] = $rawMeta[2];
         $tx_lastBlock = toDec($rawMeta[3]);
 
-        if ($_SERVER['argv'][2] != 'gui') {
             echo ' Filename : '.$tx_filename.N;
             echo ' Size     : '.formatBytes($GLOBALS['tx_size']).N;
             echo ' File TX  : '.$tx_lastBlock.N;
-        }
+
         /* restore file */
         if (!isset($GLOBALS['resumed_meta'])) {
-            if ($_SERVER['argv'][2] != 'gui') {
-                echo N.' Download file? (yes/no): ';
-            }
+            echo N.' Download file? (yes/no): ';
 
             $answer = Interact();
 
@@ -221,9 +210,8 @@ function GetData($tx)
         }
 
         /* unzip */
-        if ($_SERVER['argv'][2] != 'gui') {
-            echo N.' Decompressing file...';
-        }
+        echo N.' Decompressing file...';
+
         $zip = new ZipArchive();
         if (isset($GLOBALS['resumed_tx'])) {
             $zip->open($GLOBALS['resumed_file']);
@@ -242,9 +230,6 @@ function GetData($tx)
         }
 
         unlink('temptx');
-        if ($_SERVER['argv'][2] == 'gui') {
-            echo 'Minions team would like to thank Lemii and JuanG <3';
-        }
         echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
         WinSleep(7);
         die();

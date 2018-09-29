@@ -4,12 +4,9 @@ A tool to upload files, pictures, etc… that are send on the lisk network with 
 ## Windows
 To use Lisk-Download-File you must download the latest version from the [releases page]( https://github.com/S3x0r/Lisk-Download-File/releases).
 ### Run the tool
-You have 3 ways to use Lisk-Download-File:
-1.	Running the gui.
-2.	Running the DOWNLOAD.BAT.
-3.	Or using the command line interface.
-#### Gui
-When you choose to use the gui it needs to stay in the folder that you’ve downloaded for the [releases page]( https://github.com/S3x0r/Lisk-Download-File/releases). You can always create a shortcut for the gui to your desktop to make it easier to use.
+You have 2 ways to use Lisk-Download-File:
+1.	Running the DOWNLOAD.BAT.
+2.	Or using the command line interface.
 #### DOWNLOAD.BAT
 If you want to use the DOWNLOAD.BAT file you just must run the file and it will launch the cli version of Lisk-Download-File.
 #### Comand line interface
