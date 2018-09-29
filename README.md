@@ -23,8 +23,9 @@ After the configuration is done you can download the tool with `wget https://raw
 
 ### Run the tool
 When the download is finished you can run the tool on two different ways.
-1.	The first one is with `php download.php`
-2.	The second one is with `php download.php 12225769589953605924`
+1.	The first one is with `php download.php`.
+2.	The second one is with `php download.php 12225769589953605924`.
+
 You don’t have to put in a file id in the download interface if you use the second option.
 After the download is finished you’ll find the downloaded file in the folder where download.php is located.
 
