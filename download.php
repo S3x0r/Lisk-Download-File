@@ -1,14 +1,19 @@
 <?php
 
 error_reporting(0);
-
 ini_set('precision', 25);
-
 define('N', PHP_EOL);
 
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-    chdir('../');
+    if (!isset($_SERVER['argv'][2])) {
+        chdir('../');
+    }
     $GLOBALS['OS'] = 'WIN';
+}
+
+if (isset($_SERVER['argv'][2])) {
+    unlink('tempfile_');
+    unlink('temptx');
 }
 
 /* search for incomplete files */
@@ -19,6 +24,7 @@ if ($result = glob("tempfile_*")) {
     $GLOBALS['resumed_tx'] = file_get_contents('temptx');
 }
 
+if (!isset($_SERVER['argv'][2])) {
     echo '
  B@B@B@B@@@B@B@B@B@B@B@B@@@B@B@B@B@B@@@@@@@B@B@B@B@B@@@B@B
  @B@BGB@B@B@B@B@@@B@@@B@B@B@@@B@B@B@B@B@@@B@B@B@@@B@@@@@B@
@@ -51,9 +57,10 @@ if ($result = glob("tempfile_*")) {
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
  @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-    echo ' Lisk Download 0.7 (download file from lisk blockchain)'.N;
-    echo ' by minionsteam.org, phoenix1969, sexor, zOwn3d'.N;
+    echo ' Lisk Download 0.9 (download file from lisk blockchain)'.N;
+    echo ' by minionsteam.org, phoenix1969, sexor'.N;
     echo ' ------------------------------------------------------'.N;
+}
 
 if (isset($_SERVER['argv'][1])) {
     GetMetaData(trim($_SERVER['argv'][1]));
@@ -101,16 +108,20 @@ function GetMetaData($txId)
 
         /* restore file */
         if (!isset($GLOBALS['resumed_meta'])) {
-            echo N.' Download file? (yes/no): ';
+            if (!isset($_SERVER['argv'][2])) {
+                echo N.' Download file? (yes/no): ';
 
-            $answer = Interact();
+                $answer = Interact();
 
-            if ($answer == 'yes' xor $answer == 'y') {
-                echo N.' Downloading file from Lisk blockchain:'.N;
-                GetData(toDec($rawMeta[3]));
+                if ($answer == 'yes' xor $answer == 'y') {
+                    echo N.' Downloading file from Lisk blockchain:'.N;
+                    GetData(toDec($rawMeta[3]));
+                } else {
+                         echo ' Exiting...'.N;
+                         WinSleep(3);
+                }
             } else {
-                     echo ' Exiting...'.N;
-                     WinSleep(3);
+                     GetData(toDec($rawMeta[3]));
             }
         } else {
                  echo N.' Do you want to resume downloading previous file? (yes/no): ';
@@ -136,8 +147,10 @@ function GetMetaData($txId)
 //---------------------------------------------------------------------------------------------------
 function WinSleep($time)
 {
-    if (isset($GLOBALS['OS'])) {
-        sleep($time);
+    if (!isset($_SERVER['argv'][2])) {
+        if (isset($GLOBALS['OS'])) {
+            sleep($time);
+        }
     }
 }
 //---------------------------------------------------------------------------------------------------
@@ -162,28 +175,18 @@ function GetData($tx)
         $next_tx = toDec($dataParts[1]);
     }
 
-    /* show how much data left */
-    if (isset($GLOBALS['resumed_tx'])) {
-        if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
-            clearstatcache();
-            $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
-            echo ' Remaining: '.$left.N;
-        }
-    } else {
-        if (is_file('tempfile_'.$GLOBALS['meta_tx'])) {
-            clearstatcache();
-            $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
-            echo ' Remaining: '.$left.N;
-        }
-    }
+    printProgress();
     
     if (!empty($next_tx)) {
         if (isset($GLOBALS['resumed_tx'])) {
-            file_put_contents('tempfile_'.$GLOBALS['resumed_meta'], $dataParts[0]."'", FILE_APPEND);
+            $meta = $GLOBALS['resumed_meta'];
         } else {
-                 file_put_contents('tempfile_'.$GLOBALS['meta_tx'], $dataParts[0]."'", FILE_APPEND);
+                 $meta = $GLOBALS['meta_tx'];
         }
+
+        file_put_contents('tempfile_'.$meta, $dataParts[0]."'", FILE_APPEND);
         file_put_contents('temptx', $next_tx);
+    
     } else {
         if (isset($GLOBALS['resumed_tx'])) {
             file_put_contents($GLOBALS['resumed_file'], $dataParts[0]."'", FILE_APPEND);
@@ -209,9 +212,9 @@ function GetData($tx)
                  file_put_contents('tempfile_'.$GLOBALS['meta_tx'], Base91::decode($imp));
         }
 
-        /* unzip */
         echo N.' Decompressing file...';
 
+        /* unzip */
         $zip = new ZipArchive();
         if (isset($GLOBALS['resumed_tx'])) {
             $zip->open($GLOBALS['resumed_file']);
@@ -223,17 +226,16 @@ function GetData($tx)
         $zip->close();
 
         /* delete temp_tx */
-        if (isset($GLOBALS['resumed_tx'])) {
-            unlink($GLOBALS['resumed_file']);
-        } else {
-                 unlink('tempfile_'.$GLOBALS['meta_tx']);
-        }
-
+        unlink($GLOBALS['resumed_file']);
+        unlink('tempfile_'.$GLOBALS['meta_tx']);
         unlink('temptx');
+
         echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
+        
         WinSleep(7);
         die();
     }
+
     GetData($next_tx);
 }
 //---------------------------------------------------------------------------------------------------
@@ -256,6 +258,23 @@ function toDec($hex)
              $remain = substr($hex, 0, -1);
              $last = substr($hex, -1);
              return bcadd(bcmul(16, toDec($remain)), hexdec($last));
+    }
+}
+//---------------------------------------------------------------------------------------------------
+function printProgress() /* print how much data left */
+{
+    clearstatcache();
+
+    if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
+        $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
+    } else {
+             $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
+    }
+
+    if (!isset($_SERVER['argv'][2])) {
+        echo " Remaining: $left \r";
+    } else {
+             echo " Remaining: $left \r";
     }
 }
 //---------------------------------------------------------------------------------------------------
