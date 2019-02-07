@@ -1,5 +1,5 @@
 # Lisk Download File
-A tool to upload files, pictures, etc… that are send on the lisk network with [Lisk Send File]( https://github.com/S3x0r/Lisk-Send-File)
+A tool to download files, pictures, etc… that are send on the lisk network with [Lisk Send File]( https://github.com/S3x0r/Lisk-Send-File)
 
 ## Windows
 To use Lisk-Download-File you must download the latest version from the [releases page]( https://github.com/S3x0r/Lisk-Download-File/releases).
