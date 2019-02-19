@@ -57,7 +57,7 @@ if (!isset($_SERVER['argv'][2])) {
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
  @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-    echo ' Lisk Download 0.9 (download file from lisk blockchain)'.N;
+    echo ' Lisk Download 1.0 (download file from lisk blockchain)'.N;
     echo ' by minionsteam.org, phoenix1969, sexor'.N;
     echo ' ------------------------------------------------------'.N;
 }
@@ -66,16 +66,45 @@ if (isset($_SERVER['argv'][1])) {
     GetMetaData(trim($_SERVER['argv'][1]));
 } else {
     if (!isset($GLOBALS['resumed_file'])) {
-        echo N.' Transaction ID: ';
+        echo N.' 1 - Download file'.N;
+        echo ' 2 - Scan lisk wallet address'.N.N;
+        echo ' [1/2]: ';
+
         $answer = Interact();
 
-        if (!empty($answer)) {
-            $GLOBALS['meta_tx'] = $answer;
-            GetMetaData($answer);
-        } else {
-                 echo ' You need to write transaction tx! Exiting.'.N;
-                 WinSleep(3);
-                 die();
+        /* if download choosed */
+        if ($answer == '1') {
+            echo N.' Transaction ID: ';
+            $answer = Interact();
+            
+            if (!empty($answer)) {
+                $GLOBALS['meta_tx'] = $answer;
+                GetMetaData($answer);
+            } else {
+                     echo ' You need to write transaction tx! Exiting.'.N;
+                     WinSleep(3);
+                     exit;
+            }
+        }
+        
+        /* if scan address choosed */
+        if ($answer == '2') {
+            echo N.' Lisk wallet address: ';
+            $answer = Interact();
+
+            if (!empty($answer) && preg_match('/^[0-9]+[L]$/', $answer)) {
+                ScanAddress($answer);
+            } else {
+                     echo ' You need to write Lisk address! Exiting.'.N;
+                     WinSleep(3);
+                     exit;
+            }
+        }
+
+        if (!in_array($answer, ['1', '2'], true)) {
+            echo N.' Bad choice! Exiting.';
+            WinSleep(3);
+            exit;
         }
     } else {
          GetMetaData($GLOBALS['resumed_meta']);
@@ -186,7 +215,6 @@ function GetData($tx)
 
         file_put_contents('tempfile_'.$meta, $dataParts[0]."'", FILE_APPEND);
         file_put_contents('temptx', $next_tx);
-    
     } else {
         if (isset($GLOBALS['resumed_tx'])) {
             file_put_contents($GLOBALS['resumed_file'], $dataParts[0]."'", FILE_APPEND);
@@ -233,10 +261,76 @@ function GetData($tx)
         echo N.N.' Done, File saved to: '.$GLOBALS['tx_filename'].N;
         
         WinSleep(7);
-        die();
+        exit;
     }
 
     GetData($next_tx);
+}
+//---------------------------------------------------------------------------------------------------
+function ScanAddress($address)
+{
+    echo N.' Minions scaning address for files. Please wait...'.N;
+
+    $offset = '0';
+    $counter = '1';
+    $list = [''];
+
+    while (1) {
+        $handle = file_get_contents('https://testnet.lisk.io/api/transactions?senderIdOrRecipientId='
+                                    .$address.'&limit=100&offset='.$offset.'&sort=amount%3Adesc');
+        $raw = json_decode($handle, true);
+
+        $total = $raw['meta']['count'];
+
+        if ($total != '0' && $offset != $total) {
+            foreach ((array) $raw['data'] as $id) {
+                if (isset($id['asset']['data'])) {
+                    $decoded = Base91::decode($id['asset']['data']);
+               
+                    if (preg_match("/[M]'(.*)'(.*)'(.*)/", $decoded)) {
+                        $meta = explode("'", $decoded);
+                        array_push($list, $id['id']);
+                        echo ' ('.$counter.') File: '.$meta[1].', size: '.formatBytes($meta[2]).
+                             ', tx: '.$id['id'].PHP_EOL;
+                        $counter++;
+                    }
+                }
+                   $offset++;
+            }
+
+            if ($offset == $total && !empty(array_filter($list))) {
+                echo N.' --------------------------------------------------'.N;
+                echo ' Which file do you want to download? ';
+
+                $answer = Interact();
+
+                if (!empty($answer)) {
+                    if (is_numeric($answer)) {
+                        if (count($list) > $answer) {
+                            $GLOBALS['meta_tx'] = $list[$answer];
+                            GetMetaData($list[$answer]);
+                        } else {
+                                 echo ' Wrong file number! Exiting.';
+                                 WinSleep(10);
+                                 exit;
+                        }
+                    } else {
+                        echo ' Wrong file number! Exiting.';
+                        WinSleep(10);
+                        exit;
+                    }
+                } else {
+                         echo ' Wrong file number! Exiting.';
+                         WinSleep(10);
+                         exit;
+                }
+            }
+        } else {
+                 echo ' No files found in this wallet, Exiting.';
+                 WinSleep(10);
+                 exit;
+        }
+    }
 }
 //---------------------------------------------------------------------------------------------------
 function formatBytes($size, $precision = 0)
