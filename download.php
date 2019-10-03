@@ -5,9 +5,8 @@ ini_set('precision', 25);
 define('N', PHP_EOL);
 
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-    if (!isset($_SERVER['argv'][2])) {
-        chdir('../');
-    }
+    !isset($_SERVER['argv'][2]) ? chdir('../') : false;
+
     $GLOBALS['OS'] = 'WIN';
 }
 
@@ -57,7 +56,7 @@ if (!isset($_SERVER['argv'][2])) {
  B@B@@@B@B@B@B@@@B@B@@s           Srri;i;rrrssssssss22S5HS
  @B@B@B@B@B@BBMMGG9G:              :,::::iir;rs22SXGGMMMMB'.N.N;
 
-    echo ' Lisk Download 1.0 (download file from lisk blockchain)'.N;
+    echo ' Lisk Download 1.1 (download file from lisk blockchain)'.N;
     echo ' by minionsteam.org, phoenix1969, sexor'.N;
     echo ' ------------------------------------------------------'.N;
 }
@@ -177,9 +176,7 @@ function GetMetaData($txId)
 function WinSleep($time)
 {
     if (!isset($_SERVER['argv'][2])) {
-        if (isset($GLOBALS['OS'])) {
-            sleep($time);
-        }
+        isset($GLOBALS['OS']) ? sleep($time) : false;
     }
 }
 //---------------------------------------------------------------------------------------------------
@@ -200,18 +197,12 @@ function GetData($tx)
 
     $dataParts = explode("'", $rawData['data']['0']['asset']['data']);
     
-    if (isset($dataParts[1])) {
-        $next_tx = toDec($dataParts[1]);
-    }
+    isset($dataParts[1]) ? $next_tx = toDec($dataParts[1]) : false;
 
     printProgress();
     
     if (!empty($next_tx)) {
-        if (isset($GLOBALS['resumed_tx'])) {
-            $meta = $GLOBALS['resumed_meta'];
-        } else {
-                 $meta = $GLOBALS['meta_tx'];
-        }
+        isset($GLOBALS['resumed_tx']) ? $meta = $GLOBALS['resumed_meta'] : $meta = $GLOBALS['meta_tx'];
 
         file_put_contents('tempfile_'.$meta, $dataParts[0]."'", FILE_APPEND);
         file_put_contents('temptx', $next_tx);
@@ -234,21 +225,14 @@ function GetData($tx)
         $imp = implode('', $exp2);
 
         /* save to file */
-        if (isset($GLOBALS['resumed_tx'])) {
-            file_put_contents($GLOBALS['resumed_file'], Base91::decode($imp));
-        } else {
-                 file_put_contents('tempfile_'.$GLOBALS['meta_tx'], Base91::decode($imp));
-        }
+        isset($GLOBALS['resumed_tx']) ? file_put_contents($GLOBALS['resumed_file'], Base91::decode($imp)) :
+                                        file_put_contents('tempfile_'.$GLOBALS['meta_tx'], Base91::decode($imp));
 
         echo N.' Decompressing file...';
 
         /* unzip */
         $zip = new ZipArchive();
-        if (isset($GLOBALS['resumed_tx'])) {
-            $zip->open($GLOBALS['resumed_file']);
-        } else {
-                 $zip->open('tempfile_'.$GLOBALS['meta_tx']);
-        }
+        isset($GLOBALS['resumed_tx']) ? $zip->open($GLOBALS['resumed_file']) : $zip->open('tempfile_'.$GLOBALS['meta_tx']);
 
         $zip->extractTo(dirname(__FILE__).DIRECTORY_SEPARATOR);
         $zip->close();
@@ -359,17 +343,11 @@ function printProgress() /* print how much data left */
 {
     clearstatcache();
 
-    if (is_file('tempfile_'.$GLOBALS['resumed_meta'])) {
-        $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file']));
-    } else {
-             $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
-    }
+    is_file('tempfile_'.$GLOBALS['resumed_meta']) ? $left = formatBytes($GLOBALS['tx_size'] - filesize($GLOBALS['resumed_file'])) :
+                                                    $left = formatBytes($GLOBALS['tx_size'] - filesize('tempfile_'.$GLOBALS['meta_tx']));
 
-    if (!isset($_SERVER['argv'][2])) {
-        echo " Remaining: $left \r";
-    } else {
-             echo " Remaining: $left \r";
-    }
+    echo " Remaining: $left \r";
+
 }
 //---------------------------------------------------------------------------------------------------
 class Base91
